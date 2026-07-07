@@ -1,0 +1,137 @@
+<div class="dashboard-container" style="max-width: 1000px; margin: 30px auto; padding: 25px; font-family: Arial, sans-serif; background-color: #fcfcfc; border-radius: 12px; border: 1px solid #ddd;">
+  <header style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eaeaea; padding-bottom: 15px; margin-bottom: 25px;">
+    <h2>Secure Banking Core Portal</h2>
+    <div>
+      <span style="background: #333; color: white; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-right:10px;">{{ userRole | uppercase }} SESSION</span>
+      <button (click)="handleLogout()" style="background-color: #6c757d; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold;">Logout</button>
+    </div>
+  </header>
+
+  <!-- ================= USER VIEW ================= -->
+  @if (userRole === 'user' && currentUser) {
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px;">
+    <div>
+      <div style="background: white; border: 1px solid #e1e4e8; padding: 25px; border-radius: 10px;">
+        <h3>Account Overview</h3>
+        <p>Hello, <strong>{{ currentUser.username }}</strong> ({{ currentUser.email }})</p>
+        <div style="font-size: 36px; font-weight: 700; color: #28a745; margin: 15px 0 5px 0;">R {{ currentUser.balance | number:'1.2-2' }}</div>
+        <small style="color: #666;">Available Ledger Balance</small>
+      </div>
+
+      <div style="background: white; border: 1px solid #e1e4e8; padding: 25px; border-radius: 10px; margin-top: 20px;">
+        <h3>ATM Transaction Panel</h3>
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; font-weight: bold; margin-bottom: 8px;">Transaction Amount (ZAR)</label>
+          <input type="number" [(ngModel)]="transactionAmount" min="1" placeholder="Enter amount" style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 6px; box-sizing:border-box;">
+        </div>
+        <div style="display: flex; gap: 15px;">
+          <button (click)="handleDeposit()" style="flex: 1; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: white; background-color: #28a745;">Deposit Funds</button>
+          <button (click)="handleWithdraw()" style="flex: 1; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: white; background-color: #007bff;">Withdraw Funds</button>
+        </div>
+      </div>
+
+      <!-- NEW: Inter-account Transfer Funds Panel -->
+      <div style="background: white; border: 1px solid #e1e4e8; padding: 25px; border-radius: 10px; margin-top: 20px;">
+        <h3>Transfer Funds (EFT)</h3>
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-weight: bold; margin-bottom: 6px;">Recipient Email Address</label>
+          <input type="email" [(ngModel)]="transferRecipientEmail" placeholder="e.g. friend@bank.com" style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 6px; box-sizing:border-box;">
+        </div>
+        <div style="margin-bottom: 15px;">
+          <label style="display: block; font-weight: bold; margin-bottom: 6px;">Transfer Amount (ZAR)</label>
+          <input type="number" [(ngModel)]="transferAmount" min="1" placeholder="Enter amount to transfer" style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 6px; box-sizing:border-box;">
+        </div>
+        <button (click)="handleTransfer()" style="width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: white; background-color: #e0a800;">Execute Transfer</button>
+      </div>
+    </div>
+
+    <div style="background: white; border: 1px solid #e1e4e8; padding: 25px; border-radius: 10px;">
+      <h3>My Account Statement History</h3>
+      <div style="background: #1e1e1e; color: #a9b7c6; padding: 15px; border-radius: 6px; max-height: 480px; overflow-y: auto; font-family: monospace;">
+        @if (userTransactions.length === 0) {
+        <p style="color: #808080; font-style: italic; margin: 0;">No banking transactions processed yet.</p>
+        }
+        @for (tx of userTransactions; track tx.timestamp) {
+        <div style="padding: 6px 0; border-bottom: 1px solid #2b2b2b;">
+          <span style="color: #808080;">[{{ tx.timestamp | date:'HH:mm:ss' }}]</span>
+          Processed a <strong>{{ tx.type }}</strong> of R {{ tx.amount }}
+        </div>
+        }
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- ================= ADMIN VIEW ================= -->
+  @if (userRole === 'admin') {
+  <div>
+    @if (editingUser) {
+    <div style="background: #fff3cd; border: 1px solid #ffeba2; padding: 25px; border-radius: 10px; margin-bottom: 25px;">
+      <h3>Edit User Account Details</h3>
+      <div style="margin-bottom: 10px;">
+        <label style="display:block; font-weight:bold; margin-bottom:5px;">Account Holder Name</label>
+        <input type="text" [(ngModel)]="editingUser.username" style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 6px;">
+      </div>
+      <div style="margin-bottom: 15px;">
+        <label style="display:block; font-weight:bold; margin-bottom:5px;">System Permission Role</label>
+        <select [(ngModel)]="editingUser.role" style="width: 100%; padding: 10px; border-radius:6px; border:1px solid #ced4da;">
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <button (click)="saveEdit()" style="padding: 10px 20px; background: #218838; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-right: 10px;">Save Changes</button>
+      <button (click)="cancelEdit()" style="padding: 10px 20px; background: #e0a800; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">Cancel</button>
+    </div>
+    }
+
+    <div style="background: white; border: 1px solid #e1e4e8; padding: 25px; border-radius: 10px; margin-bottom: 25px;">
+      <h3>System User Directories</h3>
+      <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+        <thead>
+        <tr style="background-color: #f8f9fa;">
+          <th style="padding: 12px; text-align: left; border-bottom: 1px solid #dee2e6;">Account Holder Name</th>
+          <th style="padding: 12px; text-align: left; border-bottom: 1px solid #dee2e6;">Email Address</th>
+          <th style="padding: 12px; text-align: left; border-bottom: 1px solid #dee2e6;">System Role</th>
+          <th style="padding: 12px; text-align: left; border-bottom: 1px solid #dee2e6;">Balance Ledger</th>
+          <th style="padding: 12px; text-align: left; border-bottom: 1px solid #dee2e6;">Management Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        @if (allUsers.length === 0) {
+        <tr>
+          <td colspan="5" style="text-align: center; padding: 20px; color: #808080; font-style: italic;">No users registered yet.</td>
+        </tr>
+        }
+        @for (user of allUsers; track user.email) {
+        <tr>
+          <td style="padding: 12px; border-bottom: 1px solid #dee2e6;">{{ user.username }}</td>
+          <td style="padding: 12px; border-bottom: 1px solid #dee2e6;">{{ user.email }}</td>
+          <td style="padding: 12px; border-bottom: 1px solid #dee2e6;"><span style="background:#e2e8f0; padding:2px 6px; border-radius:4px; font-size:12px;">{{ user.role }}</span></td>
+          <td style="padding: 12px; border-bottom: 1px solid #dee2e6;">R {{ user.balance | number:'1.2-2' }}</td>
+          <td style="padding: 12px; border-bottom: 1px solid #dee2e6;">
+            <button (click)="startEdit(user)" style="background-color: #ffc107; color: black; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; margin-right: 5px;">Edit</button>
+            <button (click)="handleDeleteUser(user.email)" style="background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold;">Delete</button>
+          </td>
+        </tr>
+        }
+        </tbody>
+      </table>
+    </div>
+
+    <div style="background: white; border: 1px solid #e1e4e8; padding: 25px; border-radius: 10px;">
+      <h3>Backend System Transaction Auditing Records</h3>
+      <div style="background: #1e1e1e; color: #a9b7c6; padding: 15px; border-radius: 6px; max-height: 200px; overflow-y: auto; font-family: monospace;">
+        @if (allTransactions.length === 0) {
+        <p style="color: #808080; font-style: italic; margin: 0;">No background accounting transactions processed this session.</p>
+        }
+        @for (tx of allTransactions; track tx.timestamp) {
+        <div style="padding: 6px 0; border-bottom: 1px solid #2b2b2b;">
+          <span style="color: #808080;">[{{ tx.timestamp | date:'HH:mm:ss' }}]</span>
+          <strong>{{ tx.username }}</strong> ({{ tx.email }}) processed a {{ tx.type }} of R {{ tx.amount }}
+        </div>
+        }
+      </div>
+    </div>
+  </div>
+  }
+</div>
