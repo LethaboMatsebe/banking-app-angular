@@ -4,12 +4,12 @@ FROM node:22 AS build
 WORKDIR /app
 
 # Copy lockfile dependencies from repository root
-COPY ../package*.json ./
+COPY package*.json ./
 
 RUN npm install
 
-# Copy all source folders into build staging area context
-COPY ../ ./
+# Copy only the shell project into the container
+COPY projects/shell ./projects/shell
 
 RUN npx ng build shell --configuration=production
 
@@ -17,10 +17,9 @@ RUN npx ng build shell --configuration=production
 FROM nginx:alpine
 
 # Copy nginx configuration profile directly from docker folder
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
 
 COPY --from=build /app/dist/shell/browser /usr/share/nginx/html
 
 EXPOSE 80
-
 CMD ["nginx", "-g", "daemon off;"]
