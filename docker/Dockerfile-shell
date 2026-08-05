@@ -6,6 +6,8 @@ WORKDIR /app
 # Copy dependency files (must exist inside docker/)
 COPY package*.json ./
 
+
+RUN npm config delete registry
 RUN npm config set registry https://registry.npmjs.org/
 RUN npm install -g npm@12.0.2
 RUN npm install
