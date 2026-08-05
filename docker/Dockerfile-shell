@@ -3,15 +3,14 @@ FROM node:22 AS build
 
 WORKDIR /app
 
-# Copy lockfile dependencies from repository root layout
-COPY package*.json ./
+# Copy lockfile dependencies from repository root
+COPY ../package*.json ./
 
 RUN npm install
 
 # Copy all source folders into build staging area context
-COPY . .
+COPY ../ ./
 
-# 🛠️ CORRECTION: Run explicit Angular CLI workspace engine compilation directly
 RUN npx ng build shell --configuration=production
 
 # ---------- Runtime Stage ----------
