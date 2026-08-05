@@ -6,7 +6,7 @@ WORKDIR /app
 # Copy dependency files (must exist inside docker/)
 COPY package*.json ./
 
-RUN npm install --legacy-peer-deps
+RUN npm install --force
 
 # Copy Angular workspace config + shell project (must exist inside docker/)
 COPY angular.json ./
