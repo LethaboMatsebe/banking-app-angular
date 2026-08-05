@@ -3,36 +3,25 @@ FROM node:22 AS build
 
 WORKDIR /app
 
-# Copy dependency files from repo root
-COPY . .
+# Copy dependency files (must exist inside docker/)
+COPY package*.json ./
 
 RUN npm install
 
+# Copy Angular workspace config + shell project (must exist inside docker/)
+COPY angular.json ./
+COPY tsconfig*.json ./
+COPY projects/shell ./projects/shell
 
-# Debugging
-# Debug: list files in build context
-RUN ls -al /app
-
-# Debug: check if angular.json and projects/shell exist
-RUN ls -al /app/angular.json || echo "angular.json missing"
-RUN ls -al /app/projects || echo "projects folder missing"
-RUN ls -al /app/projects/shell || echo "shell project missing"
-
-# Debug: print current working directory
-RUN pwd
-
-
-# Build the shell host
 RUN npx ng build shell --configuration=production
 
 # ---------- Runtime Stage ----------
 FROM nginx:alpine
 
-# Copy nginx configuration profile from docker folder
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Copy built Angular shell app into nginx html directory
 COPY --from=build /app/dist/shell/browser /usr/share/nginx/html
 
 EXPOSE 80
+
 CMD ["nginx", "-g", "daemon off;"]
