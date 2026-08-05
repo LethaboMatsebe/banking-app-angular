@@ -9,9 +9,9 @@ COPY package*.json ./
 RUN npm install
 
 # Copy only the shell project into the container
-COPY projects/shell ./projects/shell
 COPY angular.json ./
 COPY tsconfig*.json ./
+COPY projects/shell ./projects/shell
 
 # Build the shell host
 RUN npx ng build shell --configuration=production
