@@ -23,7 +23,7 @@
   },
   "devDependencies": {
     "@angular-architects/native-federation": "^22.0.4",
-    "@angular/build": "^~22.0.9",
+    "@angular/build": "~22.0.9",
     "@angular/cli": "^21.2.13",
     "@angular/compiler-cli": "^21.2.0",
     "@softarc/native-federation-orchestrator": "^4.2.2",
