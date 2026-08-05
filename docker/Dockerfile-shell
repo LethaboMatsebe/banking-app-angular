@@ -4,14 +4,23 @@ FROM node:22 AS build
 WORKDIR /app
 
 # Copy dependency files from repo root
-COPY package*.json ./
+COPY . .
 
 RUN npm install
 
-# Copy only the shell project into the container
-COPY angular.json ./
-COPY tsconfig*.json ./
-COPY projects/shell ./projects/shell
+
+# Debugging
+# Debug: list files in build context
+RUN ls -al /app
+
+# Debug: check if angular.json and projects/shell exist
+RUN ls -al /app/angular.json || echo "angular.json missing"
+RUN ls -al /app/projects || echo "projects folder missing"
+RUN ls -al /app/projects/shell || echo "shell project missing"
+
+# Debug: print current working directory
+RUN pwd
+
 
 # Build the shell host
 RUN npx ng build shell --configuration=production
